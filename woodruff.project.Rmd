@@ -42,22 +42,6 @@ cas.lowers <- subset(lowers[13:87, ])
 SMAreg <- lmodel2(LN_length_lower_post_diastema ~ LN_lower_TRL, 
                      data=lowers, "interval", "interval", 99)
 ```
-## Regression scatterplot (default)
-```{r plot1, echo=FALSE, eval=TRUE, fig.height=5.5, fig.width=5.5}
-SMAreg1 <- lmodel2(LN_length_lower_post_diastema ~ LN_lower_TRL, 
-                     data=lowers, "interval", "interval", 99)
-plot(SMAreg1, "SMA")
-```
-
-## Regression results
-```{r, echo=FALSE}
-SMAreg1
-```
-
-## Regression results
-```{r, echo=FALSE}
-SMAreg1$regression.results
-```
 
 ## Add a regression line
 ```{r add reg line, eval=FALSE}
@@ -71,6 +55,34 @@ abline(SMAreg$confidence.intervals$"2.5%-Intercept"[3],
 SMAreg$confidence.intervals$"97.5%-Slope"[3], lty=2, lwd=2, 
 col="black")
 ````
+
+## Regression scatterplot (default)
+```{r plot1, echo=FALSE, eval=TRUE, fig.height=5.5, fig.width=5.5}
+SMAreg1 <- lmodel2(LN_length_lower_post_diastema ~ LN_lower_TRL, 
+                     data=lowers, "interval", "interval", 99)
+plot(SMAreg1, "SMA")
+```
+
+## Regression results
+
+Model II regression
+n = 264   r = 0.6508043   r-square = 0.4235462 
+Parametric P-values: 2-tailed = 3.442385e-33    1-tailed = 1.721193e-33 
+
+Angle between the two OLS regression lines = 18.71153 degrees
+
+Permutation tests of OLS, MA, RMA slopes: 1-tailed, tail corresponding to sign
+A permutation test of r is equivalent to a permutation test of the OLS slope
+P-perm for SMA = NA because the SMA slope cannot be tested
+
+## Regression results
+```{r, echo=FALSE}
+#Regression Results
+SMAreg1$regression.results
+
+#Confidence Intervals
+SMAreg1$confidence.intervals
+```
 
 ## A function for _lmodel2_: Part 1
 ```{r function set up, echo=TRUE, eval=FALSE}
@@ -152,7 +164,7 @@ regression <- function(data=data, yvar, xvar, draw=TRUE, ...) {
     abline(SMAreg$confidence.intervals$"97.5%-Intercept"[3],
            SMAreg$confidence.intervals$"2.5%-Slope"[3], lty=2, lwd=1, col="black")
   }
-  #return(SMAreg)
+  return(SMAreg)
 }
 reg1 <- regression(data=lowers,yvar=lowers$LN_length_lower_post_diastema, xvar=lowers$LN._area_lower_post_tooth, main="All genera lower diastema length vs posterior tooth area", xlab="ln tooth area", ylab="ln lower diastema length")
 reg1
