@@ -1,0 +1,205 @@
+---
+title: Regression analysis in _lmodel2_
+author: Emily Woodruff
+date: April 24, 2015
+output: ioslides_presentation
+
+---
+
+## Regression analysis using _lmodel2_
+```{r, echo=FALSE, eval=TRUE, fig.path="images/hamster.crop.png", fig.height=3, fig.width=3, fig.align="right"}
+```
+- Model 2 regression (reduced major axis regression)
+- Data: measurements from rodent skulls and teeth 
+- Goal: compare cranial & dental traits for multiple rodent species
+
+![hamster](images/hamster.crop.png)
+
+## Measurements of Rodent Skulls
+```{r, eval=TRUE, echo=FALSE, fig.align="right", fig.height=5.5, fig.width=5.5}
+```
+![rodent](images/rodent3.png)
+
+- Tooth area
+- Diastema length
+- Tooth row length
+- Length of mandible
+
+## _lmodel2_ Regression Analysis
+Reading in data
+```{r, echo=TRUE, eval=TRUE}
+#Load library
+library(lmodel2)
+## Reading in data
+lowers <- read.csv(file="data/rodents_lowers_LN_28Feb.csv", 
+                   header = TRUE)
+## Subsetting data: Castorimorpha lower measurements 
+## (beavers, pocket gophers)
+cas.lowers <- subset(lowers[13:87, ])
+```
+## General commands for _lmodel2_
+```{r commands, echo=TRUE, eval=FALSE}
+SMAreg <- lmodel2(LN_length_lower_post_diastema ~ LN_lower_TRL, 
+                     data=lowers, "interval", "interval", 99)
+```
+## Regression scatterplot (default)
+```{r plot1, echo=FALSE, eval=TRUE, fig.height=5.5, fig.width=5.5}
+SMAreg1 <- lmodel2(LN_length_lower_post_diastema ~ LN_lower_TRL, 
+                     data=lowers, "interval", "interval", 99)
+plot(SMAreg1, "SMA")
+```
+
+## Regression results
+```{r, echo=FALSE}
+SMAreg1
+```
+
+## Regression results
+```{r, echo=FALSE}
+SMAreg1$regression.results
+```
+
+## Add a regression line
+```{r add reg line, eval=FALSE}
+#Adding a regression line to the plot
+abline(SMAreg$regression.results$Intercept[3], 
+SMAreg$regression.results$Slope[3], lwd=3.5, 
+col="red")
+
+#Add the confidence intervals:
+abline(SMAreg$confidence.intervals$"2.5%-Intercept"[3],
+SMAreg$confidence.intervals$"97.5%-Slope"[3], lty=2, lwd=2, 
+col="black")
+````
+
+## A function for _lmodel2_: Part 1
+```{r function set up, echo=TRUE, eval=FALSE}
+# Set up a function to execute the regression in 
+# lmodel2 using user-specified variables
+
+regression <- function(data=data, yvar, xvar, draw=TRUE, ...) {
+  SMAreg <- lmodel2(yvar ~ xvar, data=data, "interval", "interval", 99)
+  if(draw){
+    plot(yvar ~ xvar, data=data, type="n",
+         xlim=c(-1,4.5), ylim=c(-1,4.5), ...)
+    ```
+
+## Function Part 2: color by taxon
+```{r colors, echo=TRUE, eval=FALSE}
+colorfun <- c(rep("red", nrow(data[data$Genus=="Aplodontia",])),
+              rep("blue", nrow(data[data$Genus=="Castor",])),
+              rep("orange", nrow(data[data$Genus=="Geomys",])),
+              rep("green", nrow(data[data$Genus=="Ochotona",])),
+              rep("gray48", nrow(data[data$Genus=="Oryctolagus",])),
+              rep("pink", nrow(data[data$Genus=="Paramys",])),
+              rep("black", nrow(data[data$Genus=="Reithroparamys",])),
+              rep("purple", nrow(data[data$Genus=="Sciurus",])),  
+              rep("brown", nrow(data[data$Genus=="Sylvilagus",])))
+}
+```
+## Adding points & legend to plot
+```{r rest of fxn, echo=TRUE, eval=FALSE}
+points(yvar ~ xvar, data=data,col=colorfun, pch=20, cex=1)
+legend("bottomright", legend=unique(data$Genus), 
+  col=unique(colorfun), pch=20, cex=1)
+
+#Add regression line
+abline(SMAreg$regression.results$Intercept[3],
+    SMAreg$regression.results$Slope[3], lwd=3.5, col="red")
+
+#Add the confidence intervals:
+abline(SMAreg$confidence.intervals$"2.5%-Intercept"[3],
+   SMAreg$confidence.intervals$"97.5%-Slope"[3], lty=2, 
+   lwd=2, col="black")
+    abline(SMAreg$confidence.intervals$"97.5%-Intercept"[3],
+           SMAreg$confidence.intervals$"2.5%-Slope"[3], lty=2, 
+           lwd=2, col="black")
+  }
+```
+## ...just add variables and a title!
+```{r echo=TRUE, eval=FALSE}
+reg1 <- regression(data=lowers,
+    yvar=lowers$LN_length_lower_post_diastema, 
+    xvar=lowers$LN._area_lower_post_tooth, 
+    main="All genera lower diastema length
+    vs posterior tooth area", xlab="ln tooth area", 
+    ylab="ln lower diastema length")
+```
+
+## Finished function & scatterplot
+```{r plot function all, echo=FALSE, eval=TRUE, fig.height=5.5, fig.width=7}
+regression <- function(data=data, yvar, xvar, draw=TRUE, ...) {
+  SMAreg <- lmodel2(yvar ~ xvar, data=data, "interval", "interval", 99)
+  if(draw){
+    plot(yvar ~ xvar, data=data, type="n",
+         xlim=c(-1,4.5), ylim=c(-1,4.5), ...)
+    colorfun <- c(rep("red", nrow(data[data$Genus=="Aplodontia",])),
+                  rep("blue", nrow(data[data$Genus=="Castor",])),
+                  rep("orange", nrow(data[data$Genus=="Geomys",])),
+                  rep("green", nrow(data[data$Genus=="Ochotona",])),
+                  rep("gray48", nrow(data[data$Genus=="Oryctolagus",])),
+                  rep("pink", nrow(data[data$Genus=="Paramys",])),
+                  rep("black", nrow(data[data$Genus=="Reithroparamys",])),
+                  rep("purple", nrow(data[data$Genus=="Sciurus",])),
+                  rep("brown", nrow(data[data$Genus=="Sylvilagus",])))
+    points(yvar ~ xvar, data=data,
+           col=colorfun, pch=20, cex=1)
+    legend("topleft", legend=unique(data$Genus), col=unique(colorfun), pch=20, cex=.8)
+    abline(SMAreg$regression.results$Intercept[3],
+           SMAreg$regression.results$Slope[3], lwd=1.5, col="red")
+    abline(SMAreg$confidence.intervals$"2.5%-Intercept"[3],
+           SMAreg$confidence.intervals$"97.5%-Slope"[3], lty=2, lwd=1, col="black")
+    abline(SMAreg$confidence.intervals$"97.5%-Intercept"[3],
+           SMAreg$confidence.intervals$"2.5%-Slope"[3], lty=2, lwd=1, col="black")
+  }
+  #return(SMAreg)
+}
+reg1 <- regression(data=lowers,yvar=lowers$LN_length_lower_post_diastema, xvar=lowers$LN._area_lower_post_tooth, main="All genera lower diastema length vs posterior tooth area", xlab="ln tooth area", ylab="ln lower diastema length")
+reg1
+
+```
+
+## Running regression with subset of data
+Castorimorpha (beavers, pocket gophers etc.)
+```{r, echo=TRUE, eval=FALSE}
+reg2 <- regression(data=cas.lowers,
+    yvar=cas.lowers$LN_length_lower_post_diastema, 
+    xvar=cas.lowers$LN._area_lower_post_tooth, 
+    main="Castorimorpha lower diastema length 
+    vs posterior tooth area", xlab="ln tooth area", 
+    ylab="ln lower diastema length")
+reg2
+```
+
+## Looking at Castorimorpha plot
+```{r plot function cas, echo=FALSE, eval=TRUE, fig.height=5.5, fig.width=7}
+regression <- function(data=data, yvar, xvar, draw=TRUE, ...) {
+  SMAreg <- lmodel2(yvar ~ xvar, data=data, "interval", "interval", 99)
+  if(draw){
+    plot(yvar ~ xvar, data=data, type="n",
+         xlim=c(-1,4.5), ylim=c(-1,4.5), ...)
+    colorfun <- c(rep("red", nrow(data[data$Genus=="Aplodontia",])),
+                  rep("blue", nrow(data[data$Genus=="Castor",])),
+                  rep("orange", nrow(data[data$Genus=="Geomys",])),
+                  rep("green", nrow(data[data$Genus=="Ochotona",])),
+                  rep("gray48", nrow(data[data$Genus=="Oryctolagus",])),
+                  rep("pink", nrow(data[data$Genus=="Paramys",])),
+                  rep("black", nrow(data[data$Genus=="Reithroparamys",])),
+                  rep("purple", nrow(data[data$Genus=="Sciurus",])),
+                  rep("brown", nrow(data[data$Genus=="Sylvilagus",])))
+    points(yvar ~ xvar, data=data,
+           col=colorfun, pch=20, cex=1)
+    legend("topleft", legend=unique(data$Genus), col=unique(colorfun), pch=20, cex=.8)
+    abline(SMAreg$regression.results$Intercept[3],
+           SMAreg$regression.results$Slope[3], lwd=2, col="red")
+    abline(SMAreg$confidence.intervals$"2.5%-Intercept"[3],
+           SMAreg$confidence.intervals$"97.5%-Slope"[3], lty=2, lwd=1, col="black")
+    abline(SMAreg$confidence.intervals$"97.5%-Intercept"[3],
+           SMAreg$confidence.intervals$"2.5%-Slope"[3], lty=2, lwd=1, col="black")
+  }
+  #return(SMAreg)
+}
+
+reg2 <- regression(data=cas.lowers,yvar=cas.lowers$LN_length_lower_post_diastema, xvar=cas.lowers$LN._area_lower_post_tooth, main="Castorimorpha lower diastema length vs posterior tooth area", xlab="ln tooth area", ylab="ln lower diastema length")
+reg2
+```
